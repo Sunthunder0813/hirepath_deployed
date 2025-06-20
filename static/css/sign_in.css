@@ -1,0 +1,85 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+        }
+        h2 {
+            color: #0072ff;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #0072ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 18px;
+        }
+        button:hover {
+            background: #005bb5;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .footer a {
+            color: #0072ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .input-wrapper {
+            width: 100%;
+            position: relative;
+        }
+        #password {
+            width: 100%;
+            padding-right: 40px; 
+        }
+        .password_toggle_icon {
+            position: absolute;
+            top: 50%;
+            right: 10px; 
+            transform: translateY(-50%);
+            cursor: pointer;
+            height: auto; 
+            display: none; 
+            align-items: center; 
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
+        }
+        .password_toggle_icon img {
+            width: 20px; 
+        }
+        .password_toggle_icon.show {
+            display: flex;
+            opacity: 1;
+        }

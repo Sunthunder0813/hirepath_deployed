@@ -1,0 +1,174 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #0A2647;
+        }
+        .left_section {
+            flex: 0.5; 
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .left_section img {
+            max-width: 500px;   
+            margin-bottom: 80px;
+        }
+        .left_section h1 {
+            font-size: 24px;
+            text-align: center;
+        }
+        .right_section {
+            flex: 1.5;  
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('../img/icon/login.jpg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.81);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            height: 90%;
+            max-width: 600px;
+            max-height: 500px;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+        input {
+            background: rgba(255, 255, 255, 0.8);
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #0A2647;
+            color: white;   
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 18px;
+        }
+        button:hover {
+            background: rgb(3, 19, 37);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .input_wrapper {
+            width: 100%;
+            position: relative;
+            display: flex;
+        }
+        #passwordChecklist {
+            position: absolute;
+            left: -200px; 
+            top: 0;
+            width: 180px; 
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        .password_toggle_icon {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            height: auto;
+            display: none;
+            align-items: center;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+        .password_toggle_icon img {
+            width: 20px;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        ul {
+            margin-top: 15px;
+            padding: 0;
+            list-style: none;
+            text-align: left;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease, max-height 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+        }
+        ul.visible {
+            display: block;
+            opacity: 1;
+            max-height: 500px;
+        }
+        ul li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+        ul li.valid {
+            color: green;
+        }
+        ul li::before {
+            content: '•';
+            margin-right: 10px;
+            font-size: 18px;
+            color: #999; 
+            transition: color 0.3s ease;
+        }
+        ul li.valid::before {
+            content: '✔';
+            color: green; 
+        }
+        #confirm_password {
+            border: 1px solid #ccc; 
+            transition: border-color 0.3s ease;
+        }
+        #confirm_password.error {
+            border-color: red;  
+        }
+        #confirm_password.valid {
+            border-color: green;
+            color: green; 
+        }
+        #confirm_password.valid:focus {
+            border-color: green;
+            color: green; 
+        }

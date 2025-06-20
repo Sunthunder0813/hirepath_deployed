@@ -1,0 +1,415 @@
+html, body {
+            height: 100%;   
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            min-height: 100vh;
+            padding-top: 60px;
+            height: 100vh;
+            overflow: hidden;
+        }
+        nav {
+            background: #333;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        .logo a {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            margin-left: 10px;
+            color: white;
+            font-size: 1.5em;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: 1px;
+        }
+        .logo a img {
+            display: block;
+            height: 40px;
+            margin-left: 10px;
+            object-fit: contain;
+        }
+        .nav_links {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+            gap: 20px;
+        }
+        .nav_links li {
+            display: inline;
+        }
+        .nav_links a {
+            text-decoration: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .nav_links a:hover {
+            background: #555;
+        }
+        .sign_out_button {
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .profile_dropdown {
+            position: relative;
+        }
+        .profile_dropdown > a {
+            display: inline-block;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: white;
+            cursor: pointer;
+        }
+        .profile_dropdown .dropdown_menu {
+            display: none;
+            position: absolute;
+            top: 145%;
+            left: 0;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            list-style: none;
+            padding: 10px 0;
+            margin: 0;
+            border-radius: 8px;
+            min-width: 100%;
+            z-index: 1000;
+        }
+        .profile_dropdown:hover .dropdown_menu,
+        .profile_dropdown.active .dropdown_menu {
+            display: block;
+        }
+        .profile_dropdown .dropdown_menu li {
+            border-bottom: 1px solid #f0f0f0;
+            text-align: center;
+        }
+        .profile_dropdown .dropdown_menu li a {
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            display: block;
+            text-align: center;
+        }
+        .profile_dropdown .dropdown_menu li a:hover {
+            background-color: #f8f9fa;
+            color: #007BFF;
+        }
+        .profile_card_modern {
+            width: 100vw;
+            height: calc(100vh - 60px);
+            margin: 0;
+            background: linear-gradient(120deg, #0A2647 0%, #26d0ce 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: none;
+            position: relative;
+            min-height: 0;
+            max-width: 100vw;
+        }
+        .profile_card_inner_layout {
+            display: flex;
+            width: 100vw;
+            height: calc(100vh - 60px);
+            max-width: 100vw;
+            max-height: calc(100vh - 60px);
+            background: #fff;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+        }
+        .profile_card_image_section {
+            min-width: 340px;
+            max-width: 420px;
+            width: 32vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border-radius: 0;
+            height: 100%;
+            box-shadow: 0 0 32px 0 rgba(38,208,206,0.10) inset;
+            position: relative;
+            background: url('<?php echo isset($companyDetails["company_cover"]) && file_exists($companyDetails["company_cover"]) ? $companyDetails["company_cover"] : "images/default_logo.png"; ?>') center center/cover no-repeat;
+        }
+        .profile_card_logo {
+            width: 140px;
+            height: 140px;
+            border-radius: 28px;
+            object-fit: cover;
+            background: #f4f4f4;
+            border: 4px solid #e9eef4;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(38,208,206,0.10);
+            background-clip: padding-box;
+        }
+        .profile_card_acronym {
+            font-size: 2em;
+            font-weight: bold;
+            color: #26d0ce;
+            background: none;
+            border-radius: 12px;
+            padding: 8px 28px;
+            margin: 0 auto 0 auto;
+            display: inline-block;
+            letter-spacing: 0.18em;
+            text-align: center;
+            text-transform: uppercase;
+            border: none;
+            text-shadow:
+                0 0 8px #26d0ce,
+                0 0 16px #0A2647,
+                0 2px 8px rgba(38,208,206,0.10);
+            transition: box-shadow 0.2s, color 0.2s;
+        }
+        .profile_card_content_section {
+            flex: 1;
+            padding: 48px 4vw 46px 4vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            background: #f8f9fa;
+            height: 100%;
+            min-width: 0;
+            border-radius: 0;
+            box-shadow: 0 0 32px 0 rgba(38,208,206,0.08) inset;
+            overflow: hidden;
+            position: relative;
+        }
+        .profile_card_name {
+            font-size: 3.2em;
+            font-weight: 900;
+            color: #0A2647;
+            margin-bottom: 18px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Poppins', Arial, sans-serif;
+            word-break: break-word;
+            text-align: left;
+            line-height: 1.1;
+        }
+        .profile_card_tagline {
+            font-size: 2em;
+            color: #26d0ce;
+            font-style: italic;
+            margin-bottom: 28px;
+            padding: 12px 38px;
+            display: inline-block;
+            font-family: 'Poppins', Arial, sans-serif;
+            max-width: 80vw;
+            word-break: break-word;
+            text-align: left;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        .profile_card_divider {
+            width: 1350px;
+            height: 4px;
+            background: linear-gradient(90deg, #26d0ce 0%, #0A2647 100%);
+            border-radius: 3px;
+            margin: 18px 0 18px 0;
+            opacity: 0.18;
+        }
+        .company_tabs {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin: 32px 0 0 0;
+            gap: 0;
+            border-bottom: 2px solid #e9eef4;
+            background: transparent;
+            width: 100%;
+            position: relative;
+        }
+        .company_tab_btn {
+            background: none;
+            color: #0A2647;
+            border: none;
+            outline: none;
+            font-family: 'Poppins', Arial, sans-serif;
+            font-size: 1.3em;
+            font-weight: 700;
+            padding: 14px 44px 10px 44px;
+            cursor: pointer;
+            border-radius: 0;
+            margin: 0 2px;
+            transition: color 0.2s, border-bottom 0.2s, background 0.2s;
+            border-bottom: 4px solid transparent;
+            position: relative;
+            background: transparent;
+            letter-spacing: 1px;
+        }
+        .company_tab_btn.active, .company_tab_btn:focus {
+            color: #26d0ce;
+            border-bottom: 4px solid #26d0ce;
+            background: #f8f9fa;
+            z-index: 2;
+        }
+        .company_tab_btn:not(.active):hover {
+            color: #1a2746;
+            background: #f4f8fc;
+        }
+        .company_tab_content {
+            border-radius: 0 0 18px 18px;
+            box-shadow: none;
+            width: 100%;
+            padding: 30px 0 0px 4vw;
+            min-height: 320px; 
+            max-height: 48vh;  
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .overview_section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            align-items: flex-start;
+        }
+        .overview_title {
+            font-size: 2em;
+            font-weight: 800;
+            color: #0A2647;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+        .overview_tagline {
+            font-size: 1.15em;
+            color: #26d0ce;
+            font-style: italic;
+            margin-bottom: 12px;
+            background: #e9eef4;
+            border-radius: 10px;
+            padding: 6px 18px;
+            display: inline-block;
+            font-family: 'Poppins', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+        }
+        .overview_desc {
+            font-size: 1.3em;
+            color: #222;
+            line-height: 1.7;
+            margin-bottom: 0;
+            text-align: left;
+            margin-top: 0;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            font-family: 'Poppins', Arial, sans-serif;
+            max-width: 100%;
+            background: none;
+            padding: 0;
+            margin-left: -50px; 
+        }
+        .joblisting_section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .company_jobs_list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px 20px;
+            justify-content: flex-start;
+            margin-left: -50px; 
+        }
+        .company_jobs_list li {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(38,208,206,0.10), 0 2px 8px rgba(0,0,0,0.07);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            border: 1.5px solid #e9eef4;
+            padding: 28px 20px 22px 20px;
+            margin: 0;
+            width: calc(20% - 16px); 
+            min-width: 210px;
+            max-width: 1fr;
+            box-sizing: border-box;
+            transition: box-shadow 0.2s, border 0.2s, transform 0.15s;
+            position: relative;
+            cursor: pointer;
+        }
+        .company_jobs_list li:hover {
+            box-shadow: 0 8px 32px rgba(38,208,206,0.18), 0 4px 16px rgba(0,0,0,0.13);
+            border: 2.5px solid #26d0ce;
+            transform: translateY(-6px) scale(1.04);
+            background: linear-gradient(120deg, #f8f9fa 80%, #e9eef4 100%);
+        }
+        .company_job_title {
+            font-size: 1.13em;
+            font-weight: 700;
+            color: #0A2647;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            width: 100%;
+            text-align: left;
+            white-space: normal;
+            overflow-wrap: break-word;
+            transition: color 0.2s;
+        }
+        .company_jobs_list li:hover .company_job_title {
+            color: #26d0ce;
+        }
+        .company_job_meta {
+            font-size: 1em;
+            color: #26d0ce;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 2px;
+            font-weight: 500;
+            align-items: center;
+            width: 100%;
+        }
+        .company_job_meta span {
+            background: #e9eef4;
+            color: #0A2647;
+            border-radius: 6px;
+            padding: 3px 12px;
+            font-size: 0.97em;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .company_jobs_list li:hover .company_job_meta span {
+            background: #26d0ce;
+            color: #fff;
+        }
+        .no_jobs_message {
+            color: #888;
+            font-size: 1.1em;
+            text-align: center;
+            width: 100%;
+            margin-top: 18px;
+        }
