@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($user_id && password_verify($password, $stored_password)) {
         $_SESSION['user_id'] = $user_id;
         $_SESSION['username'] = $username;
-        header("Location: employee_dashboard.php?login=1");
+        header("Location: Employee_dashboard.php?login=1");
         exit();
     } else {
         $error = "Invalid username or password.";
