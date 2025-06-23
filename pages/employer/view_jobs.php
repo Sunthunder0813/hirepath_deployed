@@ -589,7 +589,6 @@ foreach ($jobs as $job) {
             flex-direction: column;
             align-items: stretch;
         }
-        /* ...existing code... */
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -629,7 +628,7 @@ foreach ($jobs as $job) {
             function updateNavbarCount() {
                 fetch('get_pending_count.php')
                     .then(response => response.json())
-                    .then(data => {
+                    .then(data => { // <-- FIXED: add parentheses around data
                         const navbarBadge = document.getElementById('navbar-badge');
                         navbarBadge.textContent = data.count;
                         navbarBadge.style.display = data.count > 0 ? 'inline-block' : 'none';
@@ -753,7 +752,36 @@ foreach ($jobs as $job) {
             // Add click event to application cards for selection (only in freeze or approve mode)
             document.querySelectorAll('.application-card').forEach(card => {
                 card.addEventListener('click', function(e) {
-                    if (!freezeMode && !approveMode) return;
+                    if (!freezeMode && !approveMode) {
+                        // Show job details modal
+                        const title = card.querySelector('.job-title')?.textContent.trim();
+                        const date = card.querySelector('.date')?.textContent.replace('Posted:','').trim();
+                        let job = null;
+                        if (window.allJobs) {
+                            job = window.allJobs.find(j =>
+                                j.title === title && j.created_at === date
+                            );
+                        }
+                        if (job) {
+                            // Fill modal fields
+                            document.getElementById('jobDetailTitle').textContent = job.title || '';
+                            document.getElementById('jobDetailLocation').textContent = job.location || '-';
+                            document.getElementById('jobDetailType').textContent = job.type || '-';
+                            document.getElementById('jobDetailStatus').textContent = job.status || '-';
+                            document.getElementById('jobDetailCreated').textContent = job.created_at || '-';
+                            document.getElementById('jobDetailDescription').textContent = job.description || '-';
+                            document.getElementById('jobDetailSalary').textContent = job.salary || '-';
+                            document.getElementById('jobDetailRequirements').textContent = job.requirements || '-';
+                            document.getElementById('jobDetailCompany').textContent = job.company_name || '-';
+                            document.getElementById('jobDetailId').textContent = job.job_id || '-';
+                            document.getElementById('jobDetailCategory').textContent = job.category || '-';
+                            document.getElementById('jobDetailSkills').textContent = job.skills || '-';
+                            document.getElementById('jobDetailEducation').textContent = job.education || '-';
+                            document.getElementById('jobDetailModal').classList.add('active');
+                            document.getElementById('jobDetailBackdrop').classList.add('active');
+                        }
+                        return;
+                    }
                     document.querySelectorAll('.application-card').forEach(c => c.classList.remove('selected'));
                     card.classList.add('selected');
                     selectedCard = card;
@@ -836,6 +864,18 @@ foreach ($jobs as $job) {
                     }
                     // Prevent approve for pending/rejected (already handled above)
                 });
+            });
+
+            // Modal close logic
+            document.addEventListener('DOMContentLoaded', function() {
+                const closeBtn = document.getElementById('closeJobDetailModal');
+                const backdrop = document.getElementById('jobDetailBackdrop');
+                function closeModal() {
+                    document.getElementById('jobDetailModal').classList.remove('active');
+                    document.getElementById('jobDetailBackdrop').classList.remove('active');
+                }
+                if (closeBtn) closeBtn.addEventListener('click', closeModal);
+                if (backdrop) backdrop.addEventListener('click', closeModal);
             });
         });
 
@@ -1059,6 +1099,106 @@ foreach ($jobs as $job) {
                 Cancel
             </button>
         </div>
+        <!-- Job Details Modal -->
+        <div id="jobDetailBackdrop" class="modal-backdrop"></div>
+        <div id="jobDetailModal" class="modal-edit-job">
+            <div class="form-container"
+                style="
+                    max-width: 650px;
+                    min-width: 340px;
+                    padding: 0;
+                    background: #fff;
+                    border-radius: 18px;
+                    box-shadow: 0 8px 32px rgba(20,66,114,0.18);
+                    border: 2px solid #144272;
+                    overflow: hidden;
+                    position: relative;
+                ">
+                <button id="closeJobDetailModal" class="close-modal-x" type="button" aria-label="Close"
+                    style="top: 18px; right: 24px; font-size: 2.2rem; color: #888; background: none; border: none; cursor: pointer; z-index: 10; font-weight: 700; line-height: 1;">
+                    &times;
+                </button>
+                <div style="background: #144272; color: #fff; padding: 28px 32px 18px 32px; border-radius: 16px 16px 0 0;">
+                    <h1 id="jobDetailTitle" style="margin:0; font-size:1.6rem; font-weight:700; text-align:center; letter-spacing:1px;"></h1>
+                    <div id="jobDetailCompany" style="text-align:center; font-size:1.1em; margin-top:8px; font-weight:500;"></div>
+                </div>
+                <div style="padding: 28px 32px 24px 32px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 32px;">
+                        <div style="flex: 1 1 210px; min-width: 180px;">
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <span class="modal-label">Location:</span>
+                                <span id="jobDetailLocation" class="modal-value"></span>
+                            </div>
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <span class="modal-label">Category:</span>
+                                <span id="jobDetailCategory" class="modal-value"></span>
+                            </div>
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <span class="modal-label">Type:</span>
+                                <span id="jobDetailType" class="modal-value"></span>
+                            </div>
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <span class="modal-label">Status:</span>
+                                <span id="jobDetailStatus" class="modal-value"></span>
+                            </div>
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <span class="modal-label">Posted:</span>
+                                <span id="jobDetailCreated" class="modal-value"></span>
+                            </div>
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <span class="modal-label">Job ID:</span>
+                                <span id="jobDetailId" class="modal-value"></span>
+                            </div>
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <span class="modal-label">Salary:</span>
+                                <span id="jobDetailSalary" class="modal-value"></span>
+                            </div>
+                        </div>
+                        <div style="flex: 2 1 320px; min-width: 220px;">
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <span class="modal-label">Skills:</span>
+                                <div id="jobDetailSkills" class="modal-value" style="white-space:pre-line;"></div>
+                            </div>
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <span class="modal-label">Education:</span>
+                                <div id="jobDetailEducation" class="modal-value" style="white-space:pre-line;"></div>
+                            </div>
+                            <div class="form-group" style="margin-bottom:14px;">
+                                <span class="modal-label">Requirements:</span>
+                                <div id="jobDetailRequirements" class="modal-value" style="white-space:pre-line;"></div>
+                            </div>
+                            <div class="form-group">
+                                <span class="modal-label">Description:</span>
+                                <div id="jobDetailDescription"
+                                    class="modal-value"
+                                    style="white-space:pre-line; background:#f4f7fa; border-radius:6px; padding:10px 12px; min-height:60px; margin-top:4px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <style>
+                .modal-label {
+                    display: inline-block;
+                    min-width: 90px;
+                    font-weight: 600;
+                    color: #144272;
+                    margin-right: 6px;
+                }
+                .modal-value {
+                    color: #222;
+                    font-weight: 400;
+                }
+                #jobDetailModal .form-group {
+                    margin-bottom: 14px;
+                }
+                #jobDetailModal .form-group:last-child {
+                    margin-bottom: 0;
+                }
+            </style>
+        </div>
+        <!-- End Job Details Modal -->
     </div>
     <footer class="footer">
         <p>&copy; <?php echo date("Y"); ?> JobPortal. All rights reserved.</p>

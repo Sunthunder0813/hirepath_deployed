@@ -73,6 +73,7 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="../../static/img/icon/favicon.png" type="image/x-icon">
     <title>Upload Resume</title>
     <style>
         body {
@@ -361,7 +362,37 @@ button#toggle-details:hover {
         max-width: 100%;
     }
 }
-
+.popup-notification {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            min-width: 260px;
+            max-width: 350px;
+            padding: 18px 32px 18px 18px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1.1em;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s, transform 0.5s;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+            text-align: center;
+        }
+        .popup-notification.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .popup-notification.success {
+            background: #28a745;
+        }
+        .popup-notification.error {
+            background: #dc3545;
+        }
+        .popup-notification .close-btn {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -388,6 +419,10 @@ button#toggle-details:hover {
         <?php endif; ?>
     </ul>
 </nav>
+    <!-- Popup notification markup -->
+    <div id="popupNotification" class="popup-notification">
+        <span id="popupMessage"></span>
+    </div>
     <div class="container">
         <div class="left-section">
             <h2>Upload Your Resume</h2>
@@ -427,45 +462,67 @@ button#toggle-details:hover {
         </div>
     </div>
     <script>
-        document.getElementById('resume').addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    const preview = document.getElementById('preview');
-    const filePreview = document.getElementById('file-preview');
-    const fileMessage = document.getElementById('file-message');
-
-    if (file) {
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-            const fileType = file.type;
-            if (fileType === 'application/pdf') {
-                filePreview.src = e.target.result; 
-                fileMessage.textContent = '';
-                preview.style.display = 'block'; 
-            } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-                
-                filePreview.src = ''; 
-                fileMessage.textContent = 'This file will be converted to PDF for preview.'; 
-                preview.style.display = 'block'; 
-            } else {
-                filePreview.src = ''; 
-                fileMessage.textContent = 'Unsupported file type. Please upload a PDF or DOCX file.';
-                preview.style.display = 'block'; 
-            }
-        };
-
-        if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-                                
-                                reader.readAsArrayBuffer(file);
-        } else {
-            reader.readAsDataURL(file);
+        function showPopup(message, type) {
+            const popup = document.getElementById('popupNotification');
+            const msg = document.getElementById('popupMessage');
+            popup.className = 'popup-notification ' + type;
+            msg.textContent = message;
+            popup.classList.add('show');
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
         }
-    } else {
-        preview.style.display = 'none'; 
-    }
-});
 
+        document.getElementById('resume').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('preview');
+            const filePreview = document.getElementById('file-preview');
+            const fileMessage = document.getElementById('file-message');
 
+            if (file) {
+                // Check file extension and MIME type
+                const allowedExtensions = ['pdf', 'docx'];
+                const fileName = file.name;
+                const fileExt = fileName.split('.').pop().toLowerCase();
+                const allowedMimeTypes = [
+                    'application/pdf',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                ];
+                if (!allowedExtensions.includes(fileExt) || !allowedMimeTypes.includes(file.type)) {
+                    showPopup('Invalid file type. Only PDF and DOCX files are allowed.', 'error');
+                    event.target.value = '';
+                    preview.style.display = 'none';
+                    return;
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const fileType = file.type;
+                    if (fileType === 'application/pdf') {
+                        filePreview.src = e.target.result; 
+                        fileMessage.textContent = '';
+                        preview.style.display = 'block'; 
+                    } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                        filePreview.src = ''; 
+                        fileMessage.textContent = 'This file will be converted to PDF for preview.'; 
+                        preview.style.display = 'block'; 
+                    } else {
+                        filePreview.src = ''; 
+                        fileMessage.textContent = 'Unsupported file type. Please upload a PDF or DOCX file.';
+                        preview.style.display = 'block'; 
+                    }
+                };
+
+                if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                preview.style.display = 'none'; 
+            }
+        });
     </script>
     <script>
         document.getElementById('toggle-details').addEventListener('click', function () {

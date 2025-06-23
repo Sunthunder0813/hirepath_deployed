@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = trim($_POST['password']);
 
     // Check for status as well
-    $stmt = $conn->prepare("SELECT user_id, password, status FROM users WHERE username = ? AND user_type = 'employer'");
+    $stmt = $conn->prepare("SELECT user_id, password, status FROM users WHERE username = ? AND user_type = 'client'");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $stmt->store_result();
