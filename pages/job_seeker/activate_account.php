@@ -6,7 +6,7 @@ require '../../imports/src/SMTP.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-function sendEmail($to, $subject, $activation_token, $username, &$error = null) {
+function sendEmail($to, $subject, $username, &$error = null) {
     $mail = new PHPMailer(true);
     try {
         // SMTP configuration
@@ -24,7 +24,7 @@ function sendEmail($to, $subject, $activation_token, $username, &$error = null) 
         $mail->Subject = $subject;
 
         // Build the activation link here
-        $activation_link = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/activate.php?token=" . $activation_token;
+        $activation_link = "http://hirepath.free.nf/pages/job_seeker/activate.php?email=" . urlencode($to);
 
         // Build the activation email body here
         $body = "<h2>Welcome, $username!</h2>
@@ -42,4 +42,15 @@ function sendEmail($to, $subject, $activation_token, $username, &$error = null) 
         return false;
     }
 }
+
+// Example usage (add this after the function, or in the script that calls sendEmail):
+/*
+$error = null;
+if (sendEmail($to, $subject, $activation_token, $username, $error)) {
+    header("Location: ../../sign_in.php");
+    exit();
+} else {
+    // Handle error, e.g. echo $error;
+}
+*/
 ?>

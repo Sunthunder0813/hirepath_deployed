@@ -41,8 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 $stmt->close(); 
-                // Generate activation token (for email only, not stored in DB)
-                $activation_token = bin2hex(random_bytes(32));
                 // Insert user with status 'processing' and empty company fields
                 $stmt = $conn->prepare("INSERT INTO users (username, password, email, user_type, created_at, company_name, company_tagline, company_image, company_description, company_cover, status) VALUES (?, ?, ?, 'client', NOW(), NULL, NULL, NULL, NULL, NULL, 'processing')");
                 if (!$stmt) {
@@ -56,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     // Send activation email
                     $subject = "Activate your Hire Path account";
                     $mail_error = '';
-                    if (sendEmail($email, $subject, $activation_token, $username, $mail_error)) {
+                    if (sendEmail($email, $subject, $username, $mail_error)) {
                         $register_success = true;
                     } else {
                         $error = "Account created, but failed to send activation email: $mail_error";
