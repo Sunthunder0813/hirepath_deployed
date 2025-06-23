@@ -391,16 +391,19 @@ foreach ($jobs as $job) {
             display: block;
         }
         .modal-edit-job .form-container {
-            width: 70vw;
-            max-width: 80vw;
-            min-width: 600px;
-            padding: 32px 40px 24px 40px;
-            background: #f8f9fa;
+            max-width: 1200px;
+            min-width: 400px;
+            width: 98vw;
+            padding: 0;
+            background: #fff;
             border-radius: 18px;
-            box-shadow: 0 8px 32px rgba(20,66,114,0.18);
+            box-shadow: 0 12px 48px rgba(20,66,114,0.22);
             border: 2px solid #144272;
-            max-height: 90vh;
-            overflow-y: auto;
+            overflow: hidden;
+            position: relative;
+            max-height: 96vh;
+            display: flex;
+            flex-direction: column;
         }
         .modal-edit-job .form-container h1 {
             text-align: center;
@@ -764,17 +767,14 @@ foreach ($jobs as $job) {
                         }
                         if (job) {
                             // Fill modal fields
-                            document.getElementById('jobDetailTitle').textContent = job.title || '';
-                            document.getElementById('jobDetailLocation').textContent = job.location || '-';
-                            document.getElementById('jobDetailType').textContent = job.type || '-';
-                            document.getElementById('jobDetailStatus').textContent = job.status || '-';
-                            document.getElementById('jobDetailCreated').textContent = job.created_at || '-';
+                            // document.getElementById('jobDetailId').textContent = job.job_id || ''; // REMOVE THIS LINE
+                            document.getElementById('jobDetailTitle2').textContent = job.title || '';
                             document.getElementById('jobDetailDescription').textContent = job.description || '-';
-                            document.getElementById('jobDetailSalary').textContent = job.salary || '-';
-                            document.getElementById('jobDetailRequirements').textContent = job.requirements || '-';
-                            document.getElementById('jobDetailCompany').textContent = job.company_name || '-';
-                            document.getElementById('jobDetailId').textContent = job.job_id || '-';
                             document.getElementById('jobDetailCategory').textContent = job.category || '-';
+                            document.getElementById('jobDetailSalary').textContent = job.salary || '-';
+                            document.getElementById('jobDetailLocation').textContent = job.location || '-';
+                            document.getElementById('jobDetailCreated').textContent = job.created_at || '-';
+                            document.getElementById('jobDetailCompany2').textContent = job.company_name || '-';
                             document.getElementById('jobDetailSkills').textContent = job.skills || '-';
                             document.getElementById('jobDetailEducation').textContent = job.education || '-';
                             document.getElementById('jobDetailModal').classList.add('active');
@@ -867,16 +867,22 @@ foreach ($jobs as $job) {
             });
 
             // Modal close logic
-            document.addEventListener('DOMContentLoaded', function() {
-                const closeBtn = document.getElementById('closeJobDetailModal');
-                const backdrop = document.getElementById('jobDetailBackdrop');
-                function closeModal() {
-                    document.getElementById('jobDetailModal').classList.remove('active');
-                    document.getElementById('jobDetailBackdrop').classList.remove('active');
-                }
-                if (closeBtn) closeBtn.addEventListener('click', closeModal);
-                if (backdrop) backdrop.addEventListener('click', closeModal);
-            });
+            function closeModal() {
+                document.getElementById('jobDetailModal').classList.remove('active');
+                document.getElementById('jobDetailBackdrop').classList.remove('active');
+            }
+            const closeBtn = document.getElementById('closeJobDetailModal');
+            const backdrop = document.getElementById('jobDetailBackdrop');
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (backdrop) backdrop.addEventListener('click', closeModal);
+
+            // Prevent modal close when clicking inside modal
+            const modal = document.getElementById('jobDetailModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
         });
 
         
@@ -1104,74 +1110,86 @@ foreach ($jobs as $job) {
         <div id="jobDetailModal" class="modal-edit-job">
             <div class="form-container"
                 style="
-                    max-width: 650px;
-                    min-width: 340px;
+                    max-width: 1200px;
+                    min-width: 400px;
+                    width: 98vw;
                     padding: 0;
                     background: #fff;
                     border-radius: 18px;
-                    box-shadow: 0 8px 32px rgba(20,66,114,0.18);
+                    box-shadow: 0 12px 48px rgba(20,66,114,0.22);
                     border: 2px solid #144272;
                     overflow: hidden;
                     position: relative;
+                    max-height: 96vh;
+                    display: flex;
+                    flex-direction: column;
                 ">
                 <button id="closeJobDetailModal" class="close-modal-x" type="button" aria-label="Close"
                     style="top: 18px; right: 24px; font-size: 2.2rem; color: #888; background: none; border: none; cursor: pointer; z-index: 10; font-weight: 700; line-height: 1;">
                     &times;
                 </button>
-                <div style="background: #144272; color: #fff; padding: 28px 32px 18px 32px; border-radius: 16px 16px 0 0;">
-                    <h1 id="jobDetailTitle" style="margin:0; font-size:1.6rem; font-weight:700; text-align:center; letter-spacing:1px;"></h1>
-                    <div id="jobDetailCompany" style="text-align:center; font-size:1.1em; margin-top:8px; font-weight:500;"></div>
-                </div>
-                <div style="padding: 28px 32px 24px 32px;">
-                    <div style="display: flex; flex-wrap: wrap; gap: 32px;">
-                        <div style="flex: 1 1 210px; min-width: 180px;">
-                            <div class="form-group" style="margin-bottom:14px;">
-                                <span class="modal-label">Location:</span>
-                                <span id="jobDetailLocation" class="modal-value"></span>
-                            </div>
-                            <div class="form-group" style="margin-bottom:14px;">
-                                <span class="modal-label">Category:</span>
-                                <span id="jobDetailCategory" class="modal-value"></span>
-                            </div>
-                            <div class="form-group" style="margin-bottom:14px;">
-                                <span class="modal-label">Type:</span>
-                                <span id="jobDetailType" class="modal-value"></span>
-                            </div>
-                            <div class="form-group" style="margin-bottom:14px;">
-                                <span class="modal-label">Status:</span>
-                                <span id="jobDetailStatus" class="modal-value"></span>
-                            </div>
-                            <div class="form-group" style="margin-bottom:14px;">
-                                <span class="modal-label">Posted:</span>
-                                <span id="jobDetailCreated" class="modal-value"></span>
-                            </div>
-                            <div class="form-group" style="margin-bottom:14px;">
-                                <span class="modal-label">Job ID:</span>
-                                <span id="jobDetailId" class="modal-value"></span>
-                            </div>
-                            <div class="form-group" style="margin-bottom:14px;">
-                                <span class="modal-label">Salary:</span>
-                                <span id="jobDetailSalary" class="modal-value"></span>
-                            </div>
+                <!-- Removed modal header with jobDetailTitle and jobDetailCompany -->
+                <div style="padding: 36px 44px 32px 44px; overflow-y: auto; flex: 1 1 auto;">
+                    <div class="modal-job-details-2col" style="display: flex; gap: 48px;">
+                        <!-- Left side: table for all fields except description -->
+                        <div style="
+                            flex:1 1 0;
+                            min-width:0;
+                            max-width:none;
+                            display:flex;
+                            flex-direction:column;
+                            justify-content:center;
+                            background: #f7fafd;
+                            border-radius: 12px;
+                            box-shadow: 0 2px 8px rgba(20,66,114,0.06);
+                            padding: 32px 28px 32px 28px;
+                            margin: 0;
+                            height: 100%;
+                        ">
+                            <table class="job-details-table" style="width:100%; height:100%; border-collapse:separate; border-spacing:0 14px;">
+                                <tbody>
+                                    <tr>
+                                        <th class="modal-label">Title:</th>
+                                        <td class="modal-value" id="jobDetailTitle2"></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="modal-label">Category:</th>
+                                        <td class="modal-value" id="jobDetailCategory"></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="modal-label">Salary:</th>
+                                        <td class="modal-value" id="jobDetailSalary"></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="modal-label">Location:</th>
+                                        <td class="modal-value" id="jobDetailLocation"></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="modal-label">Posted:</th>
+                                        <td class="modal-value" id="jobDetailCreated"></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="modal-label">Company Name:</th>
+                                        <td class="modal-value" id="jobDetailCompany2"></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="modal-label">Skills:</th>
+                                        <td class="modal-value" id="jobDetailSkills" style="white-space:pre-line;"></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="modal-label">Education:</th>
+                                        <td class="modal-value" id="jobDetailEducation" style="white-space:pre-line;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <div style="flex: 2 1 320px; min-width: 220px;">
-                            <div class="form-group" style="margin-bottom:14px;">
-                                <span class="modal-label">Skills:</span>
-                                <div id="jobDetailSkills" class="modal-value" style="white-space:pre-line;"></div>
-                            </div>
-                            <div class="form-group" style="margin-bottom:14px;">
-                                <span class="modal-label">Education:</span>
-                                <div id="jobDetailEducation" class="modal-value" style="white-space:pre-line;"></div>
-                            </div>
-                            <div class="form-group" style="margin-bottom:14px;">
-                                <span class="modal-label">Requirements:</span>
-                                <div id="jobDetailRequirements" class="modal-value" style="white-space:pre-line;"></div>
-                            </div>
-                            <div class="form-group">
-                                <span class="modal-label">Description:</span>
+                        <!-- Right side: description only -->
+                        <div style="flex:2 1 0; min-width:340px; max-width:900px; display:flex; flex-direction:column;">
+                            <div class="form-group" style="flex:1 1 auto; display:flex; flex-direction:column;">
+                                <span class="modal-label" style="margin-bottom:12px; font-size:1.1em;">Description:</span>
                                 <div id="jobDetailDescription"
                                     class="modal-value"
-                                    style="white-space:pre-line; background:#f4f7fa; border-radius:6px; padding:10px 12px; min-height:60px; margin-top:4px;">
+                                    style="white-space:pre-line; background:#f4f7fa; border-radius:8px; padding:20px 22px; min-height:220px; max-height:600px; overflow-y:auto; font-size:1.13em; flex:1 1 auto;">
                                 </div>
                             </div>
                         </div>
@@ -1180,21 +1198,71 @@ foreach ($jobs as $job) {
             </div>
             <style>
                 .modal-label {
-                    display: inline-block;
-                    min-width: 90px;
+                    display: table-cell;
+                    min-width: 120px;
                     font-weight: 600;
                     color: #144272;
-                    margin-right: 6px;
+                    padding-right: 16px;
+                    vertical-align: top;
+                    text-align: left;
+                    background: none;
+                    border: none;
+                    font-size: 1.08em;
                 }
                 .modal-value {
                     color: #222;
                     font-weight: 400;
+                    background: none;
+                    border: none;
+                    text-align: left;
+                    font-size: 1.07em;
+                }
+                .job-details-table th, .job-details-table td {
+                    padding: 10px 8px 10px 0;
+                    border: none;
+                    background: none;
+                    vertical-align: top;
+                }
+                .job-details-table {
+                    height: 100%;
+                }
+                .job-details-table tr {
+                    border-bottom: 1px solid #e6eaf0;
+                }
+                .job-details-table tr:last-child {
+                    border-bottom: none;
                 }
                 #jobDetailModal .form-group {
-                    margin-bottom: 14px;
+                    margin-bottom: 0;
                 }
                 #jobDetailModal .form-group:last-child {
                     margin-bottom: 0;
+                }
+                .modal-job-details-2col {
+                    align-items: stretch;
+                }
+                @media (max-width: 1200px) {
+                    .modal-job-details-2col {
+                        flex-direction: column !important;
+                        gap: 18px !important;
+                    }
+                    #jobDetailModal .form-container {
+                        min-width: 0 !important;
+                        padding: 0 !important;
+                    }
+                    .job-details-table {
+                        font-size: 0.98em;
+                    }
+                }
+                @media (max-width: 700px) {
+                    .job-details-table th, .job-details-table td {
+                        padding: 7px 4px 7px 0;
+                        font-size: 0.97em;
+                    }
+                    .modal-label {
+                        min-width: 80px;
+                        font-size: 0.98em;
+                    }
                 }
             </style>
         </div>

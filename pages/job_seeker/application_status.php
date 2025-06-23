@@ -301,7 +301,3 @@ color: #007BFF;
 </script>
 </body>
 </html>
-});
-</script>
-</body>
-</html>
