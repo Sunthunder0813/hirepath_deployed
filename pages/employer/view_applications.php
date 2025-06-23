@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-
 if (!isset($_SESSION['user_id'], $_SESSION['username'])) {
     header("Location: employee_sign_in.php");
     exit();
@@ -9,43 +8,7 @@ if (!isset($_SESSION['user_id'], $_SESSION['username'])) {
 
 $user_id = $_SESSION['user_id'];
 $username = htmlspecialchars($_SESSION['username']);
-
-
-include '../../db_connection/connection.php'; 
-$conn = OpenConnection();
-
-
-$query = "SELECT a.*, j.title AS job_title, u.username AS applicant_name, a.resume_link
-          FROM `applications` a
-          JOIN `jobs` j ON a.job_id = j.job_id
-          JOIN `users` u ON a.job_seeker_id = u.user_id
-          WHERE j.employer_id = ?
-          ORDER BY a.applied_at DESC";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$applications = [];
-while ($row = $result->fetch_assoc()) {
-    $applications[] = $row;
-}
-
-$pendingApplications = [];
-$acceptedApplications = [];
-$rejectedApplications = [];
-
-foreach ($applications as $application) {
-    if ($application['status'] === 'pending' || $application['status'] === 'reviewed') {
-        $pendingApplications[] = $application;
-    } elseif ($application['status'] === 'accepted') {
-        $acceptedApplications[] = $application;
-    } elseif ($application['status'] === 'rejected') {
-        $rejectedApplications[] = $application;
-    }
-}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -308,6 +271,75 @@ function restoreResumeViewedState() {
     });
 }
 
+        // --- AJAX fetching and rendering applications ---
+        function renderApplications(applications, container, status) {
+            container.innerHTML = '';
+            if (applications.length === 0) {
+                container.innerHTML = `<p class="no-applications">No ${status} applications found.</p>`;
+                return;
+            }
+            const ul = document.createElement('ul');
+            ul.className = 'application-list';
+            applications.forEach(application => {
+                const li = document.createElement('li');
+                li.className = 'application-card';
+                let statusColor = '#ffc107', statusText = 'Pending';
+                if (status === 'accepted') {
+                    statusColor = '#28a745'; statusText = 'Accepted';
+                } else if (status === 'rejected') {
+                    statusColor = '#dc3545'; statusText = 'Rejected';
+                }
+                li.innerHTML = `
+                    <strong>
+                        <span class="job-title">${application.job_title}</span>
+                    </strong>
+                    <p>Applicant: ${application.applicant_name}</p>
+                    <p>Status: <span style="color: ${statusColor}; font-weight: bold;">${statusText}</span></p>
+                    <span class="date" data-applied-date="${application.applied_at}"></span>
+                    ${
+                        status === 'pending'
+                        ? `<div>
+                            <a href="javascript:void(0);" onclick="confirmAction('approve', 'approve_application.php?application_id=${application.application_id}')" class="btn" style="background: #28a745;">Approve</a>
+                            <a href="javascript:void(0);" onclick="confirmAction('reject', 'reject_application.php?application_id=${application.application_id}')" class="btn" style="background: #dc3545;">Reject</a>
+                        </div>`
+                        : ''
+                    }
+                    ${
+                        application.resume_link
+                        ? (
+                            status === 'pending'
+                            ? `<a href="view_resume.php?application_id=${application.application_id}" class="btn resume-viewed" style="background: #17a2b8;" target="_blank" onclick="markResumeAsViewed(this, '${application.application_id}')" data-application-id="${application.application_id}">View Resume</a>`
+                            : `<a href="${application.resume_link}" class="btn resume-viewed" style="background: #6c757d;" target="_blank">Resume viewed</a>`
+                        )
+                        : `<p style="color: #888; font-size: 12px;">No resume uploaded.</p>`
+                    }
+                `;
+                ul.appendChild(li);
+            });
+            container.appendChild(ul);
+            updateTimeAgo();
+            restoreResumeViewedState();
+        }
+
+        function fetchAndRenderApplications() {
+            fetch('fetch_applications.php')
+                .then(response => response.json())
+                .then(data => {
+                    renderApplications(data.pending, document.getElementById('pending-applications'), 'pending');
+                    renderApplications(data.accepted, document.getElementById('accepted-applications'), 'accepted');
+                    renderApplications(data.rejected, document.getElementById('rejected-applications'), 'rejected');
+                })
+                .catch(error => {
+                    document.getElementById('pending-applications').innerHTML = '<p class="no-applications">Failed to load applications.</p>';
+                    document.getElementById('accepted-applications').innerHTML = '';
+                    document.getElementById('rejected-applications').innerHTML = '';
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // ...existing code...
+            fetchAndRenderApplications();
+        });
     </script>
 </head>
 <body>
@@ -343,91 +375,13 @@ function restoreResumeViewedState() {
         </div>
 
         <div class="tab-content">
-            <?php if (!empty($pendingApplications)): ?>
-                <ul class="application-list">
-                    <?php foreach ($pendingApplications as $application): ?>
-                        <li class="application-card">
-                            <strong>
-                                <span class="job-title">
-                                    <?php echo htmlspecialchars($application['job_title']); ?>
-                                </span>
-                            </strong>
-                            <p>Applicant: <?php echo htmlspecialchars($application['applicant_name']); ?></p>
-                            <p>Status: 
-                                <span style="color: #ffc107; font-weight: bold;">Pending</span>
-                            </p>
-                            <span class="date" data-applied-date="<?php echo htmlspecialchars($application['applied_at']); ?>"></span>
-                            <div>
-                                <a href="javascript:void(0);" onclick="confirmAction('approve', 'approve_application.php?application_id=<?php echo htmlspecialchars($application['application_id']); ?>')" class="btn" style="background: #28a745;">Approve</a>
-                                <a href="javascript:void(0);" onclick="confirmAction('reject', 'reject_application.php?application_id=<?php echo htmlspecialchars($application['application_id']); ?>')" class="btn" style="background: #dc3545;">Reject</a>
-                            </div>
-                            <?php if (!empty($application['resume_link'])): ?>
-                                <a href="view_resume.php?application_id=<?php echo htmlspecialchars($application['application_id']); ?>" class="btn resume-viewed" style="background: #17a2b8;" target="_blank" onclick="markResumeAsViewed(this, '<?php echo htmlspecialchars($application['application_id']); ?>')" data-application-id="<?php echo htmlspecialchars($application['application_id']); ?>">View Resume</a>
-                            <?php else: ?>
-                                <p style="color: #888; font-size: 12px;">No resume uploaded.</p>
-                            <?php endif; ?>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php else: ?>
-                <p class="no-applications">No pending applications found.</p>
-            <?php endif; ?>
+            <div id="pending-applications"></div>
         </div>
-
         <div class="tab-content">
-            <?php if (!empty($acceptedApplications)): ?>
-                <ul class="application-list">
-                    <?php foreach ($acceptedApplications as $application): ?>
-                        <li class="application-card">
-                            <strong>
-                                <span class="job-title">
-                                    <?php echo htmlspecialchars($application['job_title']); ?>
-                                </span>
-                            </strong>
-                            <p>Applicant: <?php echo htmlspecialchars($application['applicant_name']); ?></p>
-                            <p>Status: 
-                                <span style="color: #28a745; font-weight: bold;">Accepted</span>
-                            </p>
-                            <span class="date" data-applied-date="<?php echo htmlspecialchars($application['applied_at']); ?>"></span>
-                            <?php if (!empty($application['resume_link'])): ?>
-                                <a href="<?php echo htmlspecialchars($application['resume_link']); ?>" class="btn resume-viewed" style="background: #6c757d;" target="_blank">Resume viewed</a>
-                            <?php else: ?>
-                                <p style="color: #888; font-size: 12px;">No resume uploaded.</p>
-                            <?php endif; ?>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php else: ?>
-                <p class="no-applications">No accepted applications found.</p>
-            <?php endif; ?>
+            <div id="accepted-applications"></div>
         </div>
-
         <div class="tab-content">
-            <?php if (!empty($rejectedApplications)): ?>
-                <ul class="application-list">
-                    <?php foreach ($rejectedApplications as $application): ?>
-                        <li class="application-card">
-                            <strong>
-                                <span class="job-title">
-                                    <?php echo htmlspecialchars($application['job_title']); ?>
-                                </span>
-                            </strong>
-                            <p>Applicant: <?php echo htmlspecialchars($application['applicant_name']); ?></p>
-                            <p>Status: 
-                                <span style="color: #dc3545; font-weight: bold;">Rejected</span>
-                            </p>
-                            <span class="date" data-applied-date="<?php echo htmlspecialchars($application['applied_at']); ?>"></span>
-                            <?php if (!empty($application['resume_link'])): ?>
-                                <a href="<?php echo htmlspecialchars($application['resume_link']); ?>" class="btn resume-viewed" style="background: #6c757d;" target="_blank">Resume viewed</a>
-                            <?php else: ?>
-                                <p style="color: #888; font-size: 12px;">No resume uploaded.</p>
-                            <?php endif; ?>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php else: ?>
-                <p class="no-applications">No rejected applications found.</p>
-            <?php endif; ?>
+            <div id="rejected-applications"></div>
         </div>
     </div>
     <footer class="footer">

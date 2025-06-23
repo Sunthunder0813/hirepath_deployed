@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-
 if (!isset($_SESSION['admin_id'], $_SESSION['admin_username'])) {
     header("Location: ../../admin_sign_in.php");
     exit();
@@ -9,22 +8,7 @@ if (!isset($_SESSION['admin_id'], $_SESSION['admin_username'])) {
 
 $admin_username = htmlspecialchars($_SESSION['admin_username']);
 
-
 include '../../db_connection/connection.php';
-$conn = OpenConnection();
-
-
-$query = "SELECT j.job_id, j.employer_id, j.title, j.description, j.category, j.salary, j.location, j.status, j.created_at, j.company_name, j.skills, j.education, u.company_image
-          FROM `jobs` j
-          JOIN `users` u ON j.employer_id = u.user_id
-          WHERE j.status = 'pending'
-          ORDER BY j.created_at DESC";
-$result = $conn->query($query);
-
-$pendingJobs = [];
-while ($row = $result->fetch_assoc()) {
-    $pendingJobs[] = $row;
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -501,7 +485,6 @@ while ($row = $result->fetch_assoc()) {
         }
     </style>
     <script>
-    
     document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('jobModal');
         const modalBackdrop = document.getElementById('modalBackdrop');
@@ -578,52 +561,22 @@ while ($row = $result->fetch_assoc()) {
         <a href="admin_dashboard.php" class="logo">Admin Portal</a>
         <ul class="nav-links">
             <li><a href="admin_dashboard.php">Dashboard</a></li>
+            <li><a href="admin_dashboard.php?tab=users">User Management</a></li>
             <li><a href="../../logout.php">Logout</a></li>
         </ul>
     </nav>
     <div class="container">
+        <?php
+        $tab = isset($_GET['tab']) ? $_GET['tab'] : 'dashboard';
+        if ($tab === 'users') {
+            include 'user_management.php';
+        } else {
+        ?>
         <h1>Pending Job Posts</h1>
-        <?php if (!empty($pendingJobs)): ?>
-            <ul class="job-list">
-                <?php foreach ($pendingJobs as $job): ?>
-                    <li class="job-card"
-                        data-job-id="<?php echo htmlspecialchars($job['job_id']); ?>"
-                        data-title="<?php echo htmlspecialchars($job['title']); ?>"
-                        data-category="<?php echo htmlspecialchars($job['category']); ?>"
-                        data-company="<?php echo htmlspecialchars($job['company_name']); ?>"
-                        data-logo="<?php
-                            $img = $job['company_image'];
-                            echo (file_exists($img) && !empty($img)) ? htmlspecialchars($img) : '../../static/img/company_img/default.jpg';
-                        ?>"
-                        data-employer="<?php echo htmlspecialchars($job['employer_id']); ?>"
-                        data-desc="<?php echo htmlspecialchars($job['description']); ?>"
-                        data-salary="<?php echo htmlspecialchars($job['salary']); ?>"
-                        data-location="<?php echo htmlspecialchars($job['location']); ?>"
-                        data-created="<?php echo htmlspecialchars($job['created_at']); ?>"
-                        data-skills="<?php echo htmlspecialchars($job['skills']); ?>"
-                        data-education="<?php echo htmlspecialchars($job['education']); ?>"
-                    >
-                        <img class="company-logo" src="<?php
-                            $img = $job['company_image'];
-                            echo (file_exists($img) && !empty($img)) ? htmlspecialchars($img) : '../../static/img/company_img/default.jpg';
-                        ?>" alt="Company Logo">
-                        <div class="job-card-content">
-                            <div class="job-title"><?php echo htmlspecialchars($job['title']); ?></div>
-                            <div class="job-meta">
-                                Category: <?php echo htmlspecialchars($job['category']); ?>
-                            </div>
-                            <div class="company-name">
-                                <a href="view_job_details_admin.php?company_id=<?php echo htmlspecialchars($job['employer_id']); ?>" class="btn-company" style="text-decoration:none;" onclick="event.stopPropagation();">
-                                    <?php echo htmlspecialchars($job['company_name']); ?>
-                                </a>
-                            </div>
-                        </div>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php else: ?>
-            <p class="no-jobs">No pending job posts found.</p>
-        <?php endif; ?>
+        <div id="pendingJobsContainer">
+            <p class="no-jobs">Loading pending job posts...</p>
+        </div>
+        <?php } ?>
     </div>
     
     <div class="modal-backdrop" id="modalBackdrop">
@@ -682,5 +635,80 @@ while ($row = $result->fetch_assoc()) {
     <footer class="footer">
         <p>&copy; <?php echo date("Y"); ?> JobPortal. All rights reserved.</p>
     </footer>
+    <script>
+    // ...existing modal JS...
+
+    // AJAX fetching for pending jobs
+    function fetchPendingJobs() {
+        const container = document.getElementById('pendingJobsContainer');
+        fetch('fetch_pending_jobs.php')
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+                // Re-attach modal event listeners for new job cards
+                if (typeof window.attachJobCardListeners === 'function') {
+                    window.attachJobCardListeners();
+                }
+            })
+            .catch(() => {
+                container.innerHTML = '<p class="no-jobs">Failed to load pending job posts.</p>';
+            });
+    }
+
+    // Expose modal event listeners for re-attachment after AJAX
+    window.attachJobCardListeners = function() {
+        const modal = document.getElementById('jobModal');
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        const closeBtn = document.getElementById('modalClose');
+        const jobCards = document.querySelectorAll('.job-card');
+        let currentJobId = null;
+
+        jobCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (e.target.closest('.company-name a')) return;
+                document.getElementById('modalLogo').src = card.dataset.logo;
+                document.getElementById('modalCategoryValue').textContent = card.dataset.category;
+                document.getElementById('modalCompanyValue').innerHTML = `<a href="view_job_details_admin.php?company_id=${card.dataset.employer}" class="btn-company" style="text-decoration:none;">${card.dataset.company}</a>`;
+                document.getElementById('modalSalaryValue').textContent = card.dataset.salary ? card.dataset.salary : '-';
+                document.getElementById('modalLocationValue').textContent = card.dataset.location || '-';
+                document.getElementById('modalCreatedValue').textContent = card.dataset.created || '-';
+                document.getElementById('modalSkillsValue').textContent = card.dataset.skills || '-';
+                document.getElementById('modalEducationValue').textContent = card.dataset.education || '-';
+                document.getElementById('modalDesc').textContent = card.dataset.desc || '';
+                document.getElementById('modalJobTitle').textContent = card.dataset.title;
+                currentJobId = card.getAttribute('data-job-id');
+                modalBackdrop.classList.add('active');
+            });
+        });
+
+        closeBtn.addEventListener('click', function() {
+            modalBackdrop.classList.remove('active');
+        });
+        modalBackdrop.addEventListener('click', function(e) {
+            if (e.target === modalBackdrop) modalBackdrop.classList.remove('active');
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') modalBackdrop.classList.remove('active');
+        });
+
+        document.getElementById('modalApproveBtn').onclick = function() {
+            if (!currentJobId) return;
+            window.location.href = 'approve_job.php?job_id=' + encodeURIComponent(currentJobId);
+        };
+        document.getElementById('modalRejectBtn').onclick = function() {
+            if (!currentJobId) return;
+            window.location.href = 'reject_job.php?job_id=' + encodeURIComponent(currentJobId);
+        };
+    };
+
+    // Initial fetch and periodic refresh
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchPendingJobs();
+        window.attachJobCardListeners();
+        setInterval(fetchPendingJobs, 10000); // Refresh every 10 seconds
+    });
+
+    // ...existing popup notification JS...
+    </script>
 </body>
 </html>

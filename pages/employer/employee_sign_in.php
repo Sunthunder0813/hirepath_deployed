@@ -8,21 +8,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
 
-    $stmt = $conn->prepare("SELECT user_id, password FROM users WHERE username = ? AND user_type = 'employer'");
+    // Check for status as well
+    $stmt = $conn->prepare("SELECT user_id, password, status FROM users WHERE username = ? AND user_type = 'employer'");
     $stmt->bind_param("s", $username);
     $stmt->execute();
-    $stmt->bind_result($user_id, $stored_password);
-    $stmt->fetch();
-    $stmt->close();
-
-    if ($user_id && password_verify($password, $stored_password)) {
-        $_SESSION['user_id'] = $user_id;
-        $_SESSION['username'] = $username;
-        header("Location: Employee_dashboard.php?login=1");
-        exit();
+    $stmt->store_result();
+    if ($stmt->num_rows > 0) {
+        $stmt->bind_result($user_id, $stored_password, $status);
+        $stmt->fetch();
+        if ($status === 'blocked') {
+            $error = "Your account has been blocked. This may be due to a violation of our terms or other reasons.";
+        } elseif ($status === 'active') {
+            if (password_verify($password, $stored_password)) {
+                $_SESSION['user_id'] = $user_id;
+                $_SESSION['username'] = $username;
+                header("Location: Employee_dashboard.php?login=1");
+                exit();
+            } else {
+                $error = "Invalid username or password.";
+            }
+        } else {
+            $error = "Invalid username or password, or your account is not active.";
+        }
     } else {
         $error = "Invalid username or password.";
     }
+    $stmt->close();
 }
 ?>
 
@@ -201,9 +212,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="container">
             
             <h2 id="formHeader">Sign In</h2>
-            <?php if (!empty($error)): ?>
-                <p class="error"><?php echo htmlspecialchars($error); ?></p>
-            <?php endif; ?>
             <form id="signInForm" method="POST" action="employee_sign_in.php">
                 <div class="form_group">
                     <input type="text" id="username" name="username" placeholder="Enter your Username" required>
@@ -221,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p class="footer">
                 <span class="footer-content">
                     <span style="color:#0A2647;font-weight:600;">
-                        Use your <u>Job Seeker</u> credentials to log in as Employer.
+                        Use your <em>Job Seeker</em> credentials to log in as Employer.
                     </span>
                 </span>
             </p>

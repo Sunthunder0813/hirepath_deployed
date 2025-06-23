@@ -52,6 +52,62 @@ if (isset($_GET['application_id'])) {
     sendEmail($email, $subject, $body, $username);
 
     
+    // Get job_id for the approved application
+    $job_id_query = "SELECT job_id FROM applications WHERE application_id = ?";
+    $stmt = $conn->prepare($job_id_query);
+    $stmt->bind_param("i", $application_id);
+    $stmt->execute();
+    $stmt->bind_result($job_id);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($job_id) {
+        // Reject all other applications for this specific job (job_id)
+        $other_apps_query = "SELECT a.application_id, u.email, u.username FROM applications a JOIN users u ON a.job_seeker_id = u.user_id WHERE a.job_id = ? AND a.application_id != ? AND a.status != 'rejected'";
+        $stmt = $conn->prepare($other_apps_query);
+        $stmt->bind_param("ii", $job_id, $application_id);
+        $stmt->execute();
+        $stmt->bind_result($other_app_id, $other_email, $other_username);
+
+        $rejected_applicants = [];
+        while ($stmt->fetch()) {
+            $rejected_applicants[] = [
+                'application_id' => $other_app_id,
+                'email' => $other_email,
+                'username' => $other_username
+            ];
+        }
+        $stmt->close();
+
+        // Update status to 'rejected' for other applications
+        if (!empty($rejected_applicants)) {
+            $reject_query = "UPDATE applications SET status = 'rejected' WHERE application_id = ?";
+            $stmt = $conn->prepare($reject_query);
+            foreach ($rejected_applicants as $app) {
+                $stmt->bind_param("i", $app['application_id']);
+                $stmt->execute();
+
+                // Send rejection email
+                require_once 'application_email.php';
+                $reject_body = [
+                    'username' => $app['username'],
+                    'job_title' => $job_title,
+                    'company_name' => $company_name,
+                    'rejected' => true
+                ];
+                sendEmail($app['email'], $company_name, $reject_body, $app['username']);
+            }
+            $stmt->close();
+        }
+
+        // Set job as inactive
+        $update_job_query = "UPDATE jobs SET status = 'inactive' WHERE job_id = ?";
+        $stmt = $conn->prepare($update_job_query);
+        $stmt->bind_param("i", $job_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+
     header("Location: view_applications.php?message=Application accepted and email sent successfully");
     exit();
 } else {

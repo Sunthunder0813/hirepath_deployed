@@ -1,6 +1,8 @@
 <?php
 session_start();
 include '../../db_connection/connection.php';
+// Add this to include the email sender
+include_once 'activate_account.php';
 
 $register_success = false;
 
@@ -22,9 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             $hashed_password = password_hash($password, PASSWORD_BCRYPT); 
             $conn = OpenConnection();
-            
+            // Start transaction for safety
+            $conn->begin_transaction();
             try {
-                
                 $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ?");
                 if (!$stmt) {
                     throw new Exception("Prepare failed: " . $conn->error);
@@ -38,18 +40,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     throw new Exception($error); 
                 }
 
-                
                 $stmt->close(); 
-                $stmt = $conn->prepare("INSERT INTO users (username, email, password, user_type, created_at) VALUES (?, ?, ?, 'employer', NOW())");
+                // Generate activation token (for email only, not stored in DB)
+                $activation_token = bin2hex(random_bytes(32));
+                // Insert user with status 'processing' and empty company fields
+                $stmt = $conn->prepare("INSERT INTO users (username, password, email, user_type, created_at, company_name, company_tagline, company_image, company_description, company_cover, status) VALUES (?, ?, ?, 'employer', NOW(), NULL, NULL, NULL, NULL, NULL, 'processing')");
                 if (!$stmt) {
                     throw new Exception("Prepare failed: " . $conn->error);
                 }
-                $stmt->bind_param("sss", $username, $email, $hashed_password); 
+                $stmt->bind_param("sss", $username, $hashed_password, $email); 
                 
                 if ($stmt->execute()) {
-                    $_SESSION['user_id'] = $stmt->insert_id; 
+                    $user_id = $stmt->insert_id;
                     $conn->commit(); 
-                    $register_success = true;
+                    // Send activation email
+                    $subject = "Activate your Hire Path account";
+                    $mail_error = '';
+                    if (sendEmail($email, $subject, $activation_token, $username, $mail_error)) {
+                        $register_success = true;
+                    } else {
+                        $error = "Account created, but failed to send activation email: $mail_error";
+                    }
                 } else {
                     $error = "Error creating account: " . $stmt->error;
                     throw new Exception($error); 
@@ -286,7 +297,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <?php if ($_SERVER['REQUEST_METHOD'] == 'POST'): ?>
             <?php if ($register_success): ?>
-                showPopup('Registration successful!', 'success', 'sign_in.php');
+                showPopup('Registration successful! Please check your email to activate your account.', 'success', 'sign_in.php');
             <?php elseif (!empty($error)): ?>
                 showPopup(<?php echo json_encode($error); ?>, 'error');
             <?php endif; ?>
